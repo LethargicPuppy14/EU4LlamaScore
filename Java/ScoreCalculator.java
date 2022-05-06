@@ -2,17 +2,23 @@ package Java;
 
 import java.util.Scanner;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class ScoreCalculator{
-    static File savedGame = new File("R:\\Documents\\Paradox Interactive\\Europa Universalis IV\\save games\\MP\\Britain 1614 uncompressed.eu4");
-    static Scanner readFile;
-    static HashMap<String, String> playerList;
+    private File savedGame = new File("R:\\Documents\\Paradox Interactive\\Europa Universalis IV\\save games\\MP\\Britain 1614 uncompressed.eu4");
+    private Scanner readFile;
+    private ArrayList<Player> playerList;
+
     public static void main(String[]args){
+        ScoreCalculator calculator = new ScoreCalculator();
+    }
+
+    public ScoreCalculator(){
         //File savedGame = loadFile();
-        playerList = new HashMap<String, String>();
+        playerList = new ArrayList<Player>();
 
         try{
             readFile = new Scanner(savedGame);
@@ -24,18 +30,13 @@ public class ScoreCalculator{
         catch(Exception e){
             System.out.println("File not found, or something");
         }
-
-        for(String player : playerList.keySet()){
-            System.out.println(player + ", " + playerList.get(player));
-        }
-        
     }
 
     /**
      * A truly horrifying method which checks what each line does and calls its corresponding method.
      * @param saveLine Current line from the save file being read
      */
-    public static void handleCommand(String saveLine){
+    public void handleCommand(String saveLine){
         if(saveLine.equalsIgnoreCase("players_countries={")){
             findPlayers();
         }
@@ -45,7 +46,7 @@ public class ScoreCalculator{
         return theLine.replace("\"", "");
     }
 
-    public static void findPlayers(){
+    public void findPlayers(){
         String thisLine = cleanUp(readFile.nextLine());
         int counter = 0;
         boolean hasRun = false;
@@ -65,8 +66,10 @@ public class ScoreCalculator{
                 }
                 String country = removeQuotes(readFile.nextLine());
                 //System.out.println("\t Country: " + country);
-                playerList.put(player, country);
-                //if(counter > 30) break;
+                playerList.add(new Player(player, country));
+                
+                //To prevent infinite loops. No eu4 save file is 10,000,000 lines long, right?
+                if(counter > 10000000) break;
             }
     }
 
@@ -81,7 +84,7 @@ public class ScoreCalculator{
         return noSpaces.substring(0, noSpaces.indexOf("#"));
     }
 
-    public static File loadFile(){
+    public File loadFile(){
         JFileChooser fileChooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter("EU4", "eu4");
         fileChooser.setFileFilter(filter);
